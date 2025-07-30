@@ -43,11 +43,16 @@ end
 
 PRODUITS = charger_produits
 
+get '/' do
+  erb :index, locals: { produit: nil }
+end
+
 post '/' do
-  code = params[:barcode].strip
+  code = params[:barcode]&.strip
+  halt 400, "Code barre manquant" unless code && !code.empty?
+
   produit = PRODUITS[code]
   if produit
-    # ici, tu peux afficher la page avec ce produit, ou faire autre chose
     erb :index, locals: { produit: produit }
   else
     status 404

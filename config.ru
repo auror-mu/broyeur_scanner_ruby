@@ -1,2 +1,3 @@
-require './app'  # ou le fichier où est définie ta classe Sinatra (app.rb par exemple)
+require './app'   # charge ton app Sinatra depuis app.rb
+
 run Sinatra::Application
