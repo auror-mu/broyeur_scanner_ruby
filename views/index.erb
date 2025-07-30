@@ -13,6 +13,8 @@
 
     <ul id="product-list"></ul>
     <div id="total">Total : 0 €</div>
+
+    <button id="clear-cart" style="margin-top: 20px;">Effacer liste</button>
   </div>
 
   <script>
@@ -49,6 +51,11 @@
       const total = cart.reduce((acc, p) => acc + p.prix, 0);
       document.getElementById("total").textContent = `Total : ${total.toFixed(2)} €`;
     }
+
+    document.getElementById("clear-cart").addEventListener("click", () => {
+      cart = [];
+      updateDisplay();
+    });
   </script>
 </body>
 </html>
