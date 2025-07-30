@@ -59,3 +59,17 @@ post '/' do
     "Produit non trouvé"
   end
 end
+
+# Ajoute cette route pour le front JavaScript
+get '/produit/:code' do
+  code = params[:code]
+  produit = PRODUITS[code]
+
+  if produit
+    content_type :json
+    produit.to_json
+  else
+    status 404
+    { error: "Produit non trouvé" }.to_json
+  end
+end
