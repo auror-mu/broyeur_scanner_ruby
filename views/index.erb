@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scanner codes-barres</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Scanner codes-barres</h1>
+    <input type="text" id="barcode" placeholder="Entrer code-barres ou scanner" autofocus />
+    <button onclick="addProduct()">Ajouter produit</button>
+
+    <ul id="product-list"></ul>
+    <div id="total">Total : 0 €</div>
+  </div>
+
+  <script>
+    let cart = [];
+
+    async function addProduct() {
+      const code = document.getElementById("barcode").value.trim();
+      if (!code) return alert("Veuillez entrer un code-barres.");
+
+      try {
+        const res = await fetch(`/produit/${code}`);
+        if (!res.ok) throw new Error("Produit introuvable");
+
+        const produit = await res.json();
+        cart.push(produit);
+        updateDisplay();
+      } catch (err) {
+        alert("Produit non trouvé ou erreur serveur.");
+      }
+
+      document.getElementById("barcode").value = "";
+      document.getElementById("barcode").focus();
+    }
+
+    function updateDisplay() {
+      const list = document.getElementById("product-list");
+      list.innerHTML = "";
+      cart.forEach((p) => {
+        const li = document.createElement("li");
+        li.textContent = `${p.nom} - ${p.prix.toFixed(2)} €`;
+        list.appendChild(li);
+      });
+
+      const total = cart.reduce((acc, p) => acc + p.prix, 0);
+      document.getElementById("total").textContent = `Total : ${total.toFixed(2)} €`;
+    }
+  </script>
+</body>
+</html>
