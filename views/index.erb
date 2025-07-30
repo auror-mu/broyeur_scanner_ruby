@@ -2,60 +2,120 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Scanner codes-barres</title>
+  <title>Broyeur de codes-barres</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Scanner codes-barres</h1>
-    <input type="text" id="barcode" placeholder="Entrer code-barres ou scanner" autofocus />
-    <button onclick="addProduct()">Ajouter produit</button>
+    <h1>Broyeur de codes-barres</h1>
 
+    <input type="text" id="barcode" placeholder="Entrer code-barre ou scanner" autofocus />
+    <input type="number" id="manual-price" placeholder="ou entrer prix (€)" step="0.01" />
+    <div class="btn-container"><button onclick="addProduct()">Ajouter produit</button>
+    </div>
     <ul id="product-list"></ul>
     <div id="total">Total : 0 €</div>
 
-    <button id="clear-cart" style="margin-top: 20px;">Effacer liste</button>
+    <div class="btn-container">
+      <button id="clear-cart">Effacer liste</button>
+      <button id="save-cart">Sauvegarder liste</button>
+    </div>
   </div>
 
-  <script>
-    let cart = [];
+<script>
+  let cart = [];
 
-    async function addProduct() {
-      const code = document.getElementById("barcode").value.trim();
-      if (!code) return alert("Veuillez entrer un code-barres.");
+  async function addProduct() {
+    const code = document.getElementById("barcode").value.trim();
+    const manualPriceInput = document.getElementById("manual-price").value.trim();
+    const manualPrice = parseFloat(manualPriceInput);
 
+    const hasBarcode = code.length > 0;
+    const hasManualPrice = !isNaN(manualPrice);
+
+    if (!hasBarcode && !hasManualPrice) {
+      alert("Veuillez entrer un code-barres et/ou un prix.");
+      return;
+    }
+
+    if (hasBarcode) {
       try {
         const res = await fetch(`/produit/${code}`);
         if (!res.ok) throw new Error("Produit introuvable");
 
         const produit = await res.json();
+
+        if (hasManualPrice) {
+          produit.prix = manualPrice;
+        }
+
         cart.push(produit);
         updateDisplay();
       } catch (err) {
-        alert("Produit non trouvé ou erreur serveur.");
+        if (hasManualPrice) {
+          cart.push({ nom: `Inconnu (${code})`, prix: manualPrice });
+          updateDisplay();
+        } else {
+          alert("Produit non trouvé et aucun prix manuel saisi.");
+        }
       }
-
-      document.getElementById("barcode").value = "";
-      document.getElementById("barcode").focus();
-    }
-
-    function updateDisplay() {
-      const list = document.getElementById("product-list");
-      list.innerHTML = "";
-      cart.forEach((p) => {
-        const li = document.createElement("li");
-        li.textContent = `${p.nom} - ${p.prix.toFixed(2)} €`;
-        list.appendChild(li);
-      });
-
-      const total = cart.reduce((acc, p) => acc + p.prix, 0);
-      document.getElementById("total").textContent = `Total : ${total.toFixed(2)} €`;
-    }
-
-    document.getElementById("clear-cart").addEventListener("click", () => {
-      cart = [];
+    } else if (hasManualPrice) {
+      cart.push({ nom: "Article divers", prix: manualPrice });
       updateDisplay();
-    });
-  </script>
-</body>
-</html>
+    }
+
+    document.getElementById("barcode").value = "";
+    document.getElementById("manual-price").value = "";
+    document.getElementById("barcode").focus();
+  }
+
+  function updateDisplay() {
+  const list = document.getElementById("product-list");
+  list.innerHTML = "";
+
+  cart.forEach((p, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = `${p.nom} - ${p.prix.toFixed(2)} € <span onclick="removeProduct(${index})" style="cursor:pointer; color:red; margin-left:10px;">❌</span>`;
+    list.appendChild(li);
+  });
+
+  const total = cart.reduce((acc, p) => acc + p.prix, 0);
+  document.getElementById("total").textContent = `Total : ${total.toFixed(2)} €`;
+}
+
+  function removeProduct(index) {
+    cart.splice(index, 1);
+    updateDisplay();
+  }
+
+  document.getElementById("clear-cart").addEventListener("click", () => {
+    cart = [];
+    updateDisplay();
+  });
+
+  document.getElementById("save-cart").addEventListener("click", () => {
+    if (cart.length === 0) {
+      alert("La liste est vide, rien à sauvegarder.");
+      return;
+    }
+
+    const dataStr = JSON.stringify(cart, null, 2);
+
+    const popup = window.open("", "Sauvegarde Liste", "width=600,height=400,scrollbars=yes");
+
+    if (!popup) {
+      alert("Popup bloquée, autorisez les popups pour ce site.");
+      return;
+    }
+
+    popup.document.write(`
+      <html><head><title>Liste sauvegardée en W.I.P.</title></head><body>
+      <h2>Liste des produits sauvegardés</h2>
+      <pre style="white-space: pre-wrap; word-wrap: break-word;">${dataStr}</pre>
+      <button onclick="window.close()">Fermer</button>
+      </body></html>
+    `);
+
+    popup.document.close();
+  });
+</script>
