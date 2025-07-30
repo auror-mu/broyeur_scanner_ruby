@@ -43,17 +43,14 @@ end
 
 PRODUITS = charger_produits
 
-get '/' do
-  erb :index
-end
-
-get '/produit/:code' do
-  code = params[:code].strip
+post '/' do
+  code = params[:barcode].strip
   produit = PRODUITS[code]
   if produit
-    content_type :json
-    produit.to_json
+    # ici, tu peux afficher la page avec ce produit, ou faire autre chose
+    erb :index, locals: { produit: produit }
   else
-    halt 404
+    status 404
+    "Produit non trouvé"
   end
 end
