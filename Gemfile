@@ -1,5 +1,5 @@
-ruby "3.3.8"
+ruby '3.1.2'
 
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
 gem 'sinatra'
